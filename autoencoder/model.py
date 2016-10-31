@@ -34,7 +34,10 @@ class MoleculeVAE():
             epsilon = K.random_normal(shape=(batch_size, latent_rep_size), mean=0., std=epsilon_std)
             return z_mean + K.exp(z_log_var / 2) * epsilon
 
-        z = Lambda(sampling)([z_mean, z_log_var])
+        def output_shape(args):
+            ms,vs = args
+            return ms
+        z = Lambda(sampling,output_shape)([z_mean, z_log_var])
 
         h = Dense(latent_rep_size, name='latent_input', activation = 'relu')(z)
         h = RepeatVector(max_length)(h)

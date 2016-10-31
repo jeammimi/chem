@@ -3,6 +3,8 @@ import pandas
 import h5py
 import numpy as np
 from autoencoder.utils import one_hot_array, one_hot_index
+import functools
+
 
 from sklearn.cross_validation import train_test_split
 
@@ -40,18 +42,20 @@ def main():
 
     del data
 
-    train_idx, test_idx = train_test_split(xrange(structures.shape[0]), test_size = 0.20)
+    train_idx, test_idx = train_test_split(range(structures.shape[0]), test_size = 0.20)
 
-    charset = list(reduce(lambda x, y: set(y) | x, structures, set()))
+    charset = list(functools.reduce(lambda x, y: set(y) | x, structures, set()))
 
-    one_hot_encoded = np.array(
+    one_hot_encoded = np.array(list(
         map(lambda row:
-            map(lambda x: one_hot_array(x, len(charset)),
-                one_hot_index(row, charset)),
-            structures))
+            list(map(lambda x: one_hot_array(x, len(charset)),
+                one_hot_index(row, charset))),
+            structures)))
 
     h5f = h5py.File(args.outfile, 'w')
-    h5f.create_dataset('charset', data = charset)
+    h5f.create_dataset('charset', data = np.array(charset).astype('|S9'))
+    #print(one_hot_encoded)
+    print(np.array(train_idx).shape,one_hot_encoded.shape)
     h5f.create_dataset('data_train', data = one_hot_encoded[train_idx])
     h5f.create_dataset('data_test', data = one_hot_encoded[test_idx])
 
